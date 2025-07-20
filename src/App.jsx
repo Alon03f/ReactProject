@@ -45,7 +45,9 @@ function App() {
       {!user && <AuthModal />}
 
       <Routes>
-        <Route path="/" element={<HomePage user={user} search={search} />} />
+        <Route path="/" element={<Navigate to="/home" />} />
+        <Route path="/home" element={<HomePage user={user} search={search} />} />
+
         <Route
           path="/favorites"
           element={user ? <FavoritesPage user={user} search={search} /> : <Navigate to="/login" />}
@@ -65,12 +67,11 @@ function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="*" element={<NotFound />} />
-        <Route path="/" element={<HomePage user={user} search={search} />} />
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/home" />} />
       </Routes>
     </>
   );
+
 }
 
 export default App;
