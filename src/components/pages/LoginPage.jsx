@@ -25,11 +25,10 @@ function LoginPage({ onLogin }) {
             localStorage.setItem("user", JSON.stringify(foundUser));
             if (onLogin) onLogin(foundUser);
 
-            // ✅ ניווט ורענון
             navigate("/");
             window.location.reload();
         } else {
-            setError("המשתמש לא קיים. יש להזין שוב מייל וסיסמה.");
+            setError("The user does not exist. Please enter your email and password again.");
         }
     };
 
