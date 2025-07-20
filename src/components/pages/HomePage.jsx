@@ -196,7 +196,7 @@ function HomePage({ user, search }) {
                                 fontSize: "0.85rem",
                                 color: "#aaa"
                             }}>
-                                <span>ceo: {card.ceo}</span>
+                                <span>CEO: {card.ceo}</span>
                                 <span>{card.createdAt}</span>
                             </div>
 

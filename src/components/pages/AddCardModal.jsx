@@ -26,7 +26,7 @@ function AddCardModal({ onClose, onCardCreated, user }) {
             image: formData.image.trim() !== "" ? formData.image : defaultImage,
             companyName: formData.companyName,
             description: formData.description,
-            ceo: user.ceoName,
+            CEO: user.ceoName,
             createdAt: formattedDate,
             createdByEmail: user.email,
             isFavorite: false,

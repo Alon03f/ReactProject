@@ -69,7 +69,7 @@ function Header({ user, onLogout, setSearch }) {
                         minWidth: "120px",
                         padding: "5px",
                         borderRadius: "6px",
-                        border: "1px solid #ccc",
+                        border: "0px solid #ccc",
                     }}
                 />
                 <button
@@ -88,15 +88,15 @@ function Header({ user, onLogout, setSearch }) {
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                 {!user ? (
                     <>
-                        <Link to="/login" style={{ color: "#fff", textDecoration: "underline" }}>Sign in</Link>
-                        <Link to="/register" style={{ color: "#fff", textDecoration: "underline" }}>Sign up</Link>
+                        <Link to="/login" style={{ color: "#fff", textDecoration: "none" }}>Sign In</Link>
+                        <Link to="/register" style={{ color: "#fff", textDecoration: "none" }}>Sign Up</Link>
                     </>
                 ) : (
                     <button
                         onClick={onLogout}
                         style={{ background: "none", border: "none", color: "red", cursor: "pointer" }}
                     >
-                        Log out
+                        Log Out
                     </button>
                 )}
                 <span role="img" aria-label="user" style={{ fontSize: "1.8rem" }}>
