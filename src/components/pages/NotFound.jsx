@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import AddCardModal from "./AddCardModal";
 import { useNavigate } from "react-router-dom";
 
-/* useEffect(() => {
+useEffect(() => {
     window.location.reload();
-}, []); */
+}, []);
 
 function HomePage({ user, search }) {
     const [cards, setCards] = useState([]);
