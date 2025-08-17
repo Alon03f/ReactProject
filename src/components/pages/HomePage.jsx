@@ -1,112 +1,51 @@
 import { useEffect, useState } from "react";
 import AddCardModal from "./AddCardModal";
 import { useNavigate } from "react-router-dom";
+import LoadingSpinner from "../LoadingSpinner";
 
-function HomePage({ user, search }) {
-    const [cards, setCards] = useState([]);
+function HomePage({ user, search, cards, onCardsUpdate }) {
     const [showModal, setShowModal] = useState(false);
+    const [localCards, setLocalCards] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [imageErrors, setImageErrors] = useState(new Set());
     const navigate = useNavigate();
 
     useEffect(() => {
-        loadCards();
-    }, []);
+        if (cards && cards.length > 0) {
+            const limitedCards = cards.slice(0, 20);
+            const mergedCards = limitedCards.map(card => {
+                const localCard = getLocalCard(card.id);
+                return {
+                    ...card,
+                    favoriteBy: localCard?.favoriteBy || []
+                };
+            });
+            setLocalCards(mergedCards);
+        }
+    }, [cards]);
 
-    const loadCards = () => {
-        let storedCards = JSON.parse(localStorage.getItem("cards")) || [];
+    const getLocalCard = (cardId) => {
+        const localCards = JSON.parse(localStorage.getItem("localCards")) || [];
+        return localCards.find(card => card.id === cardId);
+    };
 
-        const today = new Date();
-        const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+    const updateLocalCard = (cardId, updates) => {
+        const localCards = JSON.parse(localStorage.getItem("localCards")) || [];
+        const existingIndex = localCards.findIndex(card => card.id === cardId);
 
-        if (storedCards.length === 0) {
-            const defaultCards = [
-                {
-                    id: Date.now().toString() + "a",
-                    image: "https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?q=80&w=996&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                    companyName: "NovaTech Solutions",
-                    description: "NovaTech develops smart AI solutions for small and medium-sized businesses.",
-                    ceo: "Eyal Hayon",
-                    createdAt: formattedDate,
-                    createdByEmail: "demo@demo.com",
-                    isFavorite: false,
-                    favoriteBy: [],
-                },
-                {
-                    id: Date.now().toString() + "b",
-                    image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                    companyName: "GreenRoots",
-                    description: "Innovative and green agricultural solutions — the future starts here.",
-                    ceo: "Galit Raz",
-                    createdAt: formattedDate,
-                    createdByEmail: "demo@demo.com",
-                    isFavorite: false,
-                    favoriteBy: [],
-                },
-                {
-                    id: Date.now().toString() + "c",
-                    image: "https://plus.unsplash.com/premium_photo-1670966282879-ef5f3cbf1000?q=80&w=823&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                    companyName: "Plastic facial sculpture",
-                    description: "Facial design with modern plastic surgery with the best doctors and surgeons in Israel.",
-                    ceo: "Itzik Boblil",
-                    createdAt: formattedDate,
-                    createdByEmail: "demo@demo.com",
-                    isFavorite: false,
-                    favoriteBy: [],
-                },
-                {
-                    id: Date.now().toString() + "d",
-                    image: "https://images.unsplash.com/photo-1616046229478-9901c5536a45?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                    companyName: "Home interior design",
-                    description: "Our company offers full home interior design starting at $45,000 Come see what we have to offer !",
-                    ceo: "Avraham Cohen",
-                    createdAt: formattedDate,
-                    createdByEmail: "demo@demo.com",
-                    isFavorite: false,
-                    favoriteBy: [],
-                },
-                {
-                    id: Date.now().toString() + "e",
-                    image: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                    companyName: "dog groomer",
-                    description: "Give your dog the most enjoyable grooming experience they'll ever have. Gentle, sensitive and dynamic care is included for all types of dogs.",
-                    ceo: "Arthur Rosenberg",
-                    createdAt: formattedDate,
-                    createdByEmail: "demo@demo.com",
-                    isFavorite: false,
-                    favoriteBy: [],
-                },
-                {
-                    id: Date.now().toString() + "f",
-                    image: "https://images.unsplash.com/photo-1608232034071-c604ddc8470a?q=80&w=706&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                    companyName: "photo frames",
-                    description: "Come design your personal, dreamy frame for the perfect picture with us, from simple home furniture to wedding photos!",
-                    ceo: "Leo de Nol",
-                    createdAt: formattedDate,
-                    createdByEmail: "demo@demo.com",
-                    isFavorite: false,
-                    favoriteBy: [],
-                },
-                {
-                    id: Date.now().toString() + "g",
-                    image: "https://images.unsplash.com/photo-1504904126298-3fde501c9b31?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                    companyName: "Perfect sound",
-                    description: "Our company offers a comprehensive sound service and a maintenance person who will come to your event and assign you to operate all the equipment, equipment worth thousands of dollars, especially for events such as weddings and concerts.",
-                    ceo: "Oren Levy",
-                    createdAt: formattedDate,
-                    createdByEmail: "demo@demo.com",
-                    isFavorite: false,
-                    favoriteBy: [],
-                },
-            ];
-            localStorage.setItem("cards", JSON.stringify(defaultCards));
-            storedCards = defaultCards;
+        if (existingIndex >= 0) {
+            localCards[existingIndex] = { ...localCards[existingIndex], ...updates };
+        } else {
+            localCards.push({ id: cardId, ...updates });
         }
 
-        setCards(storedCards);
+        localStorage.setItem("localCards", JSON.stringify(localCards));
     };
 
     const toggleFavorite = (cardId) => {
-        const allCards = JSON.parse(localStorage.getItem("cards")) || [];
-        const updatedCards = allCards.map((card) => {
+        if (!user) return;
+
+        const updatedCards = localCards.map((card) => {
             if (card.id === cardId) {
                 let updatedFavorites = card.favoriteBy || [];
                 if (updatedFavorites.includes(user.email)) {
@@ -114,22 +53,45 @@ function HomePage({ user, search }) {
                 } else {
                     updatedFavorites.push(user.email);
                 }
+
+                updateLocalCard(cardId, { favoriteBy: updatedFavorites });
+
                 return { ...card, favoriteBy: updatedFavorites };
             }
             return card;
         });
 
-        localStorage.setItem("cards", JSON.stringify(updatedCards));
-        setCards(updatedCards);
+        setLocalCards(updatedCards);
     };
 
-    const filteredCards = cards.filter(card =>
-        search.trim() === "" ? true : card.companyName.toLowerCase() === search.toLowerCase()
+    const handleImageError = (cardId) => {
+        setImageErrors(prev => new Set(prev).add(cardId));
+    };
+
+    const getImageSrc = (card) => {
+        if (imageErrors.has(card.id)) {
+            return `https://via.placeholder.com/400x300/1e1e1e/ffffff?text=${encodeURIComponent(card.companyName || card.title || 'Business Card')}`;
+        }
+        return card.image;
+    };
+
+    const filteredCards = localCards.filter(card =>
+        search.trim() === "" ? true :
+            card.companyName?.toLowerCase().includes(search.toLowerCase()) ||
+            card.title?.toLowerCase().includes(search.toLowerCase()) ||
+            card.description?.toLowerCase().includes(search.toLowerCase())
     );
+
+    if (loading) {
+        return <LoadingSpinner />;
+    }
 
     return (
         <main>
-            <h1>Cards</h1>
+            <h1>Business Cards</h1>
+            <p style={{ color: '#aaa', marginBottom: '2rem' }}>
+                Discover amazing businesses and services.
+            </p>
 
             {user?.isBusiness && (
                 <button
@@ -142,90 +104,182 @@ function HomePage({ user, search }) {
                         color: "#fff",
                         borderRadius: "50%",
                         border: "none",
-                        width: "50px",
-                        height: "50px",
+                        width: "60px",
+                        height: "60px",
                         cursor: "pointer",
+                        fontSize: "1.5rem",
+                        boxShadow: "0 4px 12px rgba(0,123,255,0.3)",
+                        zIndex: 1000
                     }}
+                    title="Create new business card"
                 >
                     +
                 </button>
             )}
 
-            <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                gap: "2rem",
-                marginTop: "2rem",
-            }}>
-                {filteredCards.map((card) => (
-                    <div key={card.id} style={{
-                        backgroundColor: "#1e1e1e",
-                        borderRadius: "1rem",
-                        overflow: "hidden",
-                        boxShadow: "0 0 10px rgba(255,255,255,0.1)",
-                        position: "relative",
+            {filteredCards.length === 0 && search.trim() !== "" ? (
+                <div style={{ textAlign: 'center', color: '#aaa', marginTop: '3rem' }}>
+                    <h3>No cards found</h3>
+                    <p>No cards match your search for "{search}". Try different keywords.</p>
+                </div>
+            ) : filteredCards.length === 0 ? (
+                <div style={{ textAlign: 'center', color: '#aaa', marginTop: '3rem' }}>
+                    <h3>Loading Cards...</h3>
+                    <p>Please wait while we load business cards from our API.</p>
+                </div>
+            ) : (
+                <>
+                    <div style={{
+                        marginBottom: '1rem',
+                        color: '#666',
+                        fontSize: '0.9rem',
+                        textAlign: 'center'
                     }}>
-                        <img src={card.image} alt={card.companyName} style={{ width: "100%", height: "200px", objectFit: "cover" }} />
+                        Showing {filteredCards.length} of 20 business cards
+                    </div>
 
-                        {user && (
-                            <button
-                                onClick={() => toggleFavorite(card.id)}
-                                style={{
-                                    position: "absolute",
-                                    top: "10px",
-                                    right: "-30px",
-                                    background: "none",
-                                    border: "none",
-                                    fontSize: "1.5rem",
-                                    cursor: "pointer",
-                                    color: card.favoriteBy?.includes(user.email) ? "red" : "#aaa"
+                    <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                        gap: "2rem",
+                        marginTop: "2rem",
+                    }}>
+                        {filteredCards.map((card) => (
+                            <div key={card.id} style={{
+                                backgroundColor: "#1e1e1e",
+                                borderRadius: "1rem",
+                                overflow: "hidden",
+                                boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+                                position: "relative",
+                                transition: "transform 0.2s, box-shadow 0.2s"
+                            }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = "translateY(-5px)";
+                                    e.currentTarget.style.boxShadow = "0 8px 30px rgba(0,0,0,0.4)";
                                 }}
-                                title="Mark as favorite"
-                            >
-                                {card.favoriteBy?.includes(user.email) ? "❤️" : "🤍"}
-                            </button>
-                        )}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = "translateY(0)";
+                                    e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.3)";
+                                }}>
+                                <img
+                                    src={getImageSrc(card)}
+                                    alt={card.companyName || card.title}
+                                    style={{
+                                        width: "100%",
+                                        height: "200px",
+                                        objectFit: "cover",
+                                        backgroundColor: "#333"
+                                    }}
+                                    onError={() => handleImageError(card.id)}
+                                    loading="lazy"
+                                />
 
-                        <div style={{ padding: "1rem" }}>
-                            <h2>{card.companyName}</h2>
-                            <p style={{ color: "#ccc" }}>{card.description}</p>
-                            <div style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                marginTop: "1rem",
-                                fontSize: "0.85rem",
-                                color: "#aaa"
-                            }}>
-                                <span>CEO: {card.ceo}</span>
-                                <span>{card.createdAt}</span>
-                            </div>
-
-                            {user && user.email === card.createdByEmail && (
-                                <div style={{ textAlign: "center", marginTop: "1rem" }}>
+                                {user && (
                                     <button
-                                        onClick={() => navigate(`/edit/${card.id}`)}
+                                        onClick={() => toggleFavorite(card.id)}
                                         style={{
-                                            padding: "0.4rem 1rem",
-                                            backgroundColor: "#0d6efd",
+                                            position: "absolute",
+                                            top: "15px",
+                                            right: "15px",
+                                            background: "rgba(0,0,0,0.6)",
                                             border: "none",
-                                            color: "white",
-                                            borderRadius: "6px",
-                                            cursor: "pointer"
+                                            fontSize: "1.5rem",
+                                            cursor: "pointer",
+                                            color: card.favoriteBy?.includes(user.email) ? "red" : "#fff",
+                                            borderRadius: "50%",
+                                            width: "40px",
+                                            height: "40px",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            transition: "all 0.2s"
+                                        }}
+                                        title={card.favoriteBy?.includes(user.email) ? "Remove from favorites" : "Add to favorites"}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = "scale(1.1)";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = "scale(1)";
                                         }}
                                     >
-                                        Edit
+                                        {card.favoriteBy?.includes(user.email) ? "❤️" : "🤍"}
                                     </button>
+                                )}
+
+                                <div style={{ padding: "1.5rem" }}>
+                                    <h2 style={{ margin: "0 0 0.5rem 0", color: "#fff" }}>
+                                        {card.companyName || card.title}
+                                    </h2>
+                                    <p style={{
+                                        color: "#ccc",
+                                        lineHeight: "1.5",
+                                        marginBottom: "1rem",
+                                        display: "-webkit-box",
+                                        WebkitLineClamp: "3",
+                                        WebkitBoxOrient: "vertical",
+                                        overflow: "hidden"
+                                    }}>
+                                        {card.description}
+                                    </p>
+
+                                    {card.phone && (
+                                        <p style={{ color: "#aaa", fontSize: "0.9rem", margin: "0.5rem 0" }}>
+                                            📞 {card.phone}
+                                        </p>
+                                    )}
+
+                                    {card.address && (
+                                        <p style={{ color: "#aaa", fontSize: "0.9rem", margin: "0.5rem 0" }}>
+                                            📍 {card.address}
+                                        </p>
+                                    )}
+
+                                    <div style={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        marginTop: "1rem",
+                                        fontSize: "0.85rem",
+                                        color: "#aaa",
+                                        borderTop: "1px solid #333",
+                                        paddingTop: "1rem"
+                                    }}>
+                                        <span>CEO: {card.ceo}</span>
+                                        <span>{card.createdAt}</span>
+                                    </div>
+
+                                    {user && user.email === card.createdByEmail && (
+                                        <div style={{ textAlign: "center", marginTop: "1rem" }}>
+                                            <button
+                                                onClick={() => navigate(`/edit/${card.id}`)}
+                                                style={{
+                                                    padding: "0.5rem 1rem",
+                                                    backgroundColor: "#0d6efd",
+                                                    border: "none",
+                                                    color: "white",
+                                                    borderRadius: "6px",
+                                                    cursor: "pointer",
+                                                    fontSize: "0.9rem"
+                                                }}
+                                            >
+                                                Edit Card
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        ))}
                     </div>
-                ))}
-            </div>
+                </>
+            )}
 
             {showModal && (
                 <AddCardModal
                     onClose={() => setShowModal(false)}
-                    onCardCreated={loadCards}
+                    onCardCreated={() => {
+                        setShowModal(false);
+                        onCardsUpdate();
+                    }}
                     user={user}
                 />
             )}
