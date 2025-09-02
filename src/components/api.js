@@ -1,19 +1,6 @@
-const API_BASE = 'https://jsonplaceholder.typicode.com';
+const API_BASE = 'https://bcard-ojqa.onrender.com';
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-const SAFE_IMAGES = [
-    'https://via.placeholder.com/400x300/1e1e1e/ffffff?text=Business+Card+1',
-    'https://via.placeholder.com/400x300/2c3e50/ffffff?text=Business+Card+2',
-    'https://via.placeholder.com/400x300/34495e/ffffff?text=Business+Card+3',
-    'https://via.placeholder.com/400x300/27ae60/ffffff?text=Business+Card+4',
-    'https://via.placeholder.com/400x300/3498db/ffffff?text=Business+Card+5',
-    'https://via.placeholder.com/400x300/9b59b6/ffffff?text=Business+Card+6',
-    'https://via.placeholder.com/400x300/e74c3c/ffffff?text=Business+Card+7',
-    'https://via.placeholder.com/400x300/f39c12/ffffff?text=Business+Card+8',
-    'https://via.placeholder.com/400x300/1abc9c/ffffff?text=Business+Card+9',
-    'https://via.placeholder.com/400x300/e67e22/ffffff?text=Business+Card+10'
-];
 
 export class ApiService {
     static async fetchUsers() {
@@ -24,45 +11,79 @@ export class ApiService {
             const users = await response.json();
 
             return users.map(user => ({
-                id: user.id,
-                name: user.name,
+                id: user._id,
+                name: `${user.name?.first || 'User'} ${user.name?.last || ''}`.trim(),
                 email: user.email,
                 password: 'demo123',
-                phone: user.phone,
-                website: user.website,
-                company: user.company,
-                address: user.address,
-                isBusiness: user.id % 2 === 0,
-                ceoName: user.company?.name ? `${user.name}` : null,
-                companyName: user.company?.name || null
+                phone: user.phone || '050-0000000',
+                website: user.web || '',
+                company: { name: user.name?.first || 'Company' },
+                address: user.address || {},
+                isBusiness: user.isBusiness || false,
+                ceoName: `${user.name?.first || 'CEO'} ${user.name?.last || ''}`.trim(),
+                companyName: user.name?.first || 'Company'
             }));
         } catch (error) {
             console.error('Error fetching users:', error);
-            throw error;
+            return this.getFallbackUsers();
         }
+    }
+
+    static getFallbackUsers() {
+        return [
+            {
+                id: "1",
+                name: "Demo User",
+                email: "demo@example.com",
+                password: 'demo123',
+                phone: "050-1234567",
+                website: "",
+                company: { name: "Demo Company" },
+                address: {},
+                isBusiness: true,
+                ceoName: "Demo User",
+                companyName: "Demo Company"
+            },
+            {
+                id: "2",
+                name: "Test User",
+                email: "test@example.com",
+                password: 'demo123',
+                phone: "050-2345678",
+                website: "",
+                company: { name: "Test Company" },
+                address: {},
+                isBusiness: false,
+                ceoName: "Test User",
+                companyName: "Test Company"
+            }
+        ];
     }
 
     static async fetchCards() {
         try {
             await delay(400);
-            const response = await fetch(`${API_BASE}/posts?_limit=20`);
+            const response = await fetch(`${API_BASE}/cards`);
             if (!response.ok) throw new Error('Failed to fetch cards');
-            const posts = await response.json();
+            const cards = await response.json();
 
-            return posts.map((post, index) => ({
-                id: post.id.toString(),
-                cardNumber: `100${post.id.toString().padStart(3, '0')}`,
-                title: post.title.charAt(0).toUpperCase() + post.title.slice(1),
-                description: post.body.charAt(0).toUpperCase() + post.body.slice(1),
-                companyName: post.title.split(' ').slice(0, 2).join(' ').charAt(0).toUpperCase() + post.title.split(' ').slice(0, 2).join(' ').slice(1),
-                phone: `050-${Math.floor(Math.random() * 9000000) + 1000000}`,
-                address: `${Math.floor(Math.random() * 999) + 1} Business St.`,
-                image: SAFE_IMAGES[index % SAFE_IMAGES.length],
-                createdByEmail: `user${post.userId}@demo.com`,
-                createdAt: new Date().toLocaleDateString('en-GB'),
-                ceo: `CEO ${post.userId}`,
-                favoriteBy: [],
-                userId: post.userId
+            return cards.map(card => ({
+                id: card._id,
+                cardNumber: card.bizNumber?.toString() || Math.floor(Math.random() * 1000000).toString(),
+                title: card.title,
+                description: card.description,
+                companyName: card.title,
+                phone: card.phone,
+                address: `${card.address?.street || ''} ${card.address?.houseNumber || ''}, ${card.address?.city || ''}, ${card.address?.country || ''}`.trim(),
+                image: card.image?.url || 'https://via.placeholder.com/400x300/1e1e1e/ffffff?text=Business+Card',
+                createdByEmail: card.email || 'unknown@example.com',
+                createdAt: new Date(card.createdAt).toLocaleDateString('en-GB') || new Date().toLocaleDateString('en-GB'),
+                ceo: card.subtitle || 'CEO',
+                favoriteBy: card.likes || [],
+                userId: card.user_id,
+                email: card.email,
+                web: card.web,
+                bizNumber: card.bizNumber
             }));
         } catch (error) {
             console.error('Error fetching cards:', error);
@@ -80,13 +101,13 @@ export class ApiService {
                 description: "We provide innovative technology solutions for modern businesses.",
                 companyName: "Tech Solutions Inc",
                 phone: "050-1234567",
-                address: "123 Tech Street",
-                image: SAFE_IMAGES[0],
+                address: "123 Tech Street, Tel Aviv, Israel",
+                image: 'https://via.placeholder.com/400x300/1e1e1e/ffffff?text=Tech+Solutions',
                 createdByEmail: "user1@demo.com",
                 createdAt: today,
-                ceo: "CEO 1",
+                ceo: "CEO Tech",
                 favoriteBy: [],
-                userId: 1
+                userId: "1"
             },
             {
                 id: "2",
@@ -95,28 +116,13 @@ export class ApiService {
                 description: "Sustainable energy solutions for a better tomorrow.",
                 companyName: "Green Energy Co",
                 phone: "050-2345678",
-                address: "456 Green Avenue",
-                image: SAFE_IMAGES[1],
+                address: "456 Green Avenue, Haifa, Israel",
+                image: 'https://via.placeholder.com/400x300/27ae60/ffffff?text=Green+Energy',
                 createdByEmail: "user2@demo.com",
                 createdAt: today,
-                ceo: "CEO 2",
+                ceo: "CEO Green",
                 favoriteBy: [],
-                userId: 2
-            },
-            {
-                id: "3",
-                cardNumber: "100003",
-                title: "Design Studio",
-                description: "Creative design services for all your branding needs.",
-                companyName: "Design Studio",
-                phone: "050-3456789",
-                address: "789 Creative Lane",
-                image: SAFE_IMAGES[2],
-                createdByEmail: "user3@demo.com",
-                createdAt: today,
-                ceo: "CEO 3",
-                favoriteBy: [],
-                userId: 3
+                userId: "2"
             }
         ];
     }
@@ -124,35 +130,53 @@ export class ApiService {
     static async createCard(cardData) {
         try {
             await delay(500);
-            const response = await fetch(`${API_BASE}/posts`, {
+            const response = await fetch(`${API_BASE}/cards`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json; charset=UTF-8',
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     title: cardData.companyName,
-                    body: cardData.description,
-                    userId: cardData.userId || 1
+                    subtitle: cardData.ceo || 'CEO',
+                    description: cardData.description,
+                    phone: cardData.phone,
+                    email: cardData.createdByEmail,
+                    web: cardData.web || '',
+                    image: {
+                        url: cardData.image,
+                        alt: cardData.companyName
+                    },
+                    address: {
+                        state: '',
+                        country: 'Israel',
+                        city: cardData.address?.split(',')[1]?.trim() || 'Tel Aviv',
+                        street: cardData.address?.split(',')[0]?.trim() || 'Main Street',
+                        houseNumber: Math.floor(Math.random() * 999) + 1,
+                        zip: Math.floor(Math.random() * 90000) + 10000
+                    }
                 }),
             });
 
             if (!response.ok) throw new Error('Failed to create card');
-            const newPost = await response.json();
+            const newCard = await response.json();
 
             return {
-                id: newPost.id.toString(),
-                cardNumber: `100${newPost.id.toString().padStart(3, '0')}`,
-                title: cardData.companyName,
-                description: cardData.description,
-                companyName: cardData.companyName,
-                phone: cardData.phone || `050-${Math.floor(Math.random() * 9000000) + 1000000}`,
-                address: cardData.address || `${Math.floor(Math.random() * 999) + 1} Business St.`,
-                image: cardData.image || SAFE_IMAGES[newPost.id % SAFE_IMAGES.length],
-                createdByEmail: cardData.createdByEmail,
-                createdAt: new Date().toLocaleDateString('en-GB'),
-                ceo: cardData.ceo,
+                id: newCard._id,
+                cardNumber: newCard.bizNumber?.toString() || Math.floor(Math.random() * 1000000).toString(),
+                title: newCard.title,
+                description: newCard.description,
+                companyName: newCard.title,
+                phone: newCard.phone,
+                address: `${newCard.address?.street || ''} ${newCard.address?.houseNumber || ''}, ${newCard.address?.city || ''}, ${newCard.address?.country || ''}`.trim(),
+                image: newCard.image?.url || cardData.image,
+                createdByEmail: newCard.email,
+                createdAt: new Date(newCard.createdAt).toLocaleDateString('en-GB'),
+                ceo: newCard.subtitle || 'CEO',
                 favoriteBy: [],
-                userId: cardData.userId || 1
+                userId: newCard.user_id,
+                email: newCard.email,
+                web: newCard.web,
+                bizNumber: newCard.bizNumber
             };
         } catch (error) {
             console.error('Error creating card:', error);
@@ -163,25 +187,39 @@ export class ApiService {
     static async updateCard(cardId, cardData) {
         try {
             await delay(400);
-            const response = await fetch(`${API_BASE}/posts/${cardId}`, {
+            const response = await fetch(`${API_BASE}/cards/${cardId}`, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json; charset=UTF-8',
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    id: cardId,
                     title: cardData.companyName,
-                    body: cardData.description,
-                    userId: cardData.userId || 1
+                    subtitle: cardData.ceo || 'CEO',
+                    description: cardData.description,
+                    phone: cardData.phone,
+                    email: cardData.createdByEmail,
+                    web: cardData.web || '',
+                    image: {
+                        url: cardData.image,
+                        alt: cardData.companyName
+                    },
+                    address: {
+                        state: '',
+                        country: 'Israel',
+                        city: cardData.address?.split(',')[1]?.trim() || 'Tel Aviv',
+                        street: cardData.address?.split(',')[0]?.trim() || 'Main Street',
+                        houseNumber: Math.floor(Math.random() * 999) + 1,
+                        zip: Math.floor(Math.random() * 90000) + 10000
+                    }
                 }),
             });
 
             if (!response.ok) throw new Error('Failed to update card');
-            const updatedPost = await response.json();
+            const updatedCard = await response.json();
 
             return {
                 ...cardData,
-                id: updatedPost.id.toString(),
+                id: updatedCard._id,
                 title: cardData.companyName,
                 description: cardData.description,
                 companyName: cardData.companyName
@@ -195,7 +233,7 @@ export class ApiService {
     static async deleteCard(cardId) {
         try {
             await delay(300);
-            const response = await fetch(`${API_BASE}/posts/${cardId}`, {
+            const response = await fetch(`${API_BASE}/cards/${cardId}`, {
                 method: 'DELETE',
             });
 
@@ -210,16 +248,41 @@ export class ApiService {
     static async authenticateUser(email, password) {
         try {
             await delay(600);
-            const users = await this.fetchUsers();
-            const user = users.find(u =>
-                u.email.toLowerCase() === email.toLowerCase() &&
-                password === 'demo123'
-            );
+            const response = await fetch(`${API_BASE}/users/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                }),
+            });
 
-            if (user) {
-                return user;
+            if (response.ok) {
+                const user = await response.json();
+                return {
+                    id: user._id,
+                    name: `${user.name?.first || 'User'} ${user.name?.last || ''}`.trim(),
+                    email: user.email,
+                    phone: user.phone,
+                    isBusiness: user.isBusiness,
+                    ceoName: `${user.name?.first || 'CEO'} ${user.name?.last || ''}`.trim(),
+                    companyName: user.name?.first || 'Company',
+                    address: user.address
+                };
             } else {
-                throw new Error('Invalid credentials');
+                const fallbackUsers = this.getFallbackUsers();
+                const user = fallbackUsers.find(u => 
+                    u.email.toLowerCase() === email.toLowerCase() && 
+                    password === 'demo123'
+                );
+                
+                if (user) {
+                    return user;
+                } else {
+                    throw new Error('Invalid credentials');
+                }
             }
         } catch (error) {
             console.error('Error authenticating user:', error);
@@ -230,23 +293,67 @@ export class ApiService {
     static async registerUser(userData) {
         try {
             await delay(700);
-            const newUser = {
-                id: Date.now(),
-                name: `${userData.firstName} ${userData.lastName}`,
-                email: userData.email,
-                password: userData.password,
-                phone: userData.phone,
-                isBusiness: userData.isBusiness,
-                ceoName: userData.ceoName,
-                companyName: userData.companyName,
-                address: {
-                    street: userData.street,
-                    city: userData.city,
-                    country: userData.country
-                }
-            };
+            const response = await fetch(`${API_BASE}/users`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: {
+                        first: userData.firstName,
+                        middle: '',
+                        last: userData.lastName
+                    },
+                    phone: userData.phone,
+                    email: userData.email,
+                    password: userData.password,
+                    image: {
+                        url: 'https://via.placeholder.com/400x400/1e1e1e/ffffff?text=User',
+                        alt: `${userData.firstName} ${userData.lastName}`
+                    },
+                    address: {
+                        state: '',
+                        country: userData.country || 'Israel',
+                        city: userData.city || 'Tel Aviv',
+                        street: userData.street || 'Main Street',
+                        houseNumber: Math.floor(Math.random() * 999) + 1,
+                        zip: Math.floor(Math.random() * 90000) + 10000
+                    },
+                    isBusiness: userData.isBusiness || false
+                }),
+            });
 
-            return newUser;
+            if (response.ok) {
+                const newUser = await response.json();
+                return {
+                    id: newUser._id,
+                    name: `${newUser.name?.first || ''} ${newUser.name?.last || ''}`.trim(),
+                    email: newUser.email,
+                    phone: newUser.phone,
+                    isBusiness: newUser.isBusiness,
+                    ceoName: userData.ceoName || `${userData.firstName} ${userData.lastName}`,
+                    companyName: userData.companyName || `${userData.firstName} Company`,
+                    address: newUser.address
+                };
+            } else {
+                const newUser = {
+                    id: Date.now().toString(),
+                    name: `${userData.firstName} ${userData.lastName}`,
+                    email: userData.email,
+                    password: userData.password,
+                    phone: userData.phone,
+                    isBusiness: userData.isBusiness,
+                    ceoName: userData.ceoName || `${userData.firstName} ${userData.lastName}`,
+                    companyName: userData.companyName || `${userData.firstName} Company`,
+                    address: {
+                        street: userData.street,
+                        city: userData.city,
+                        country: userData.country
+                    }
+                };
+
+                return newUser;
+            }
         } catch (error) {
             console.error('Error registering user:', error);
             throw error;
