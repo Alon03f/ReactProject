@@ -12,7 +12,7 @@ function HomePage({ user, search, cards, onCardsUpdate }) {
 
     useEffect(() => {
         if (cards && cards.length > 0) {
-            const limitedCards = cards.slice(0, 20);
+            const limitedCards = cards.slice(0, 50);
             const mergedCards = limitedCards.map(card => {
                 const localCard = getLocalCard(card.id);
                 return {
@@ -72,7 +72,7 @@ function HomePage({ user, search, cards, onCardsUpdate }) {
         if (imageErrors.has(card.id)) {
             return `https://via.placeholder.com/400x300/1e1e1e/ffffff?text=${encodeURIComponent(card.companyName || card.title || 'Business Card')}`;
         }
-        return card.image;
+        return card.image || `https://via.placeholder.com/400x300/1e1e1e/ffffff?text=${encodeURIComponent(card.companyName || card.title || 'Business Card')}`;
     };
 
     const filteredCards = localCards.filter(card =>
@@ -90,7 +90,7 @@ function HomePage({ user, search, cards, onCardsUpdate }) {
         <main>
             <h1>Business Cards</h1>
             <p style={{ color: '#aaa', marginBottom: '2rem' }}>
-                Discover amazing businesses and services.
+                Discover amazing businesses and services from our API.
             </p>
 
             {user?.isBusiness && (
@@ -135,7 +135,7 @@ function HomePage({ user, search, cards, onCardsUpdate }) {
                         fontSize: '0.9rem',
                         textAlign: 'center'
                     }}>
-                        Showing {filteredCards.length} of 20 business cards
+                        Showing {filteredCards.length} business cards from {localCards.length} total
                     </div>
 
                     <div style={{
@@ -234,6 +234,20 @@ function HomePage({ user, search, cards, onCardsUpdate }) {
                                         </p>
                                     )}
 
+                                    {card.email && (
+                                        <p style={{ color: "#aaa", fontSize: "0.9rem", margin: "0.5rem 0" }}>
+                                            ✉️ {card.email}
+                                        </p>
+                                    )}
+
+                                    {card.web && (
+                                        <p style={{ color: "#aaa", fontSize: "0.9rem", margin: "0.5rem 0" }}>
+                                            🌐 <a href={card.web} target="_blank" rel="noopener noreferrer" style={{ color: "#007bff" }}>
+                                                {card.web}
+                                            </a>
+                                        </p>
+                                    )}
+
                                     <div style={{
                                         display: "flex",
                                         justifyContent: "space-between",
@@ -283,6 +297,20 @@ function HomePage({ user, search, cards, onCardsUpdate }) {
                     user={user}
                 />
             )}
+
+            <div style={{
+                fontSize: '0.9rem',
+                color: '#666',
+                marginTop: '3rem',
+                textAlign: 'center',
+                padding: '1rem',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '8px'
+            }}>
+                <p style={{ margin: '0' }}>
+                    💡 <strong>API Integration:</strong> Business cards are loaded from bcard-ojqa.onrender.com API with local favorite management.
+                </p>
+            </div>
         </main>
     );
 }
